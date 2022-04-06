@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 import openpyxl
 
-book = openpyxl.open('db.xlsx', read_only=True)
+book = openpyxl.open('../db.xlsx', read_only=True)
 
 sheet = book.active
 
@@ -23,17 +23,20 @@ def collect_data():
     ua = UserAgent()
 
     headers = {
-        'User-Agent': ua.random
+        'User-Agent': ua.random,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Cache-Lontrol": "max - age = 0",
     }
 
-    with open("report.csv", 'w', encoding='cp1251') as file:
+    with open("report_perek.csv", 'w', encoding='cp1251') as file:
         writer = csv.writer(file, delimiter=',')
 
         writer.writerow(
             (
                 'Продукт',
-                'Цена',
-                'Цена со скидкой',
+                'Текущ. цена',
                 'Цена до скидки'
             )
         )
@@ -42,43 +45,32 @@ def collect_data():
 
         response = requests.get(url=f'{link}', headers=headers)
 
-        with open(f'index.html', 'w', encoding="utf-8") as file:
+        with open(f'../index_per.html', 'w', encoding="utf-8") as file:
             file.write(response.text)
 
-        with open('index.html', encoding='utf-8') as file:
+        with open('../index_per.html', encoding='utf-8') as file:
             src = file.read()
 
         soup = BeautifulSoup(src, 'lxml')
 
-        title = soup.find('h1', class_="product-base-info_name title-l2 ng-star-inserted").text.strip()
-        #print(title)
+        title = soup.find('h1', class_="product__title").text.strip()
 
         try:
-            def_price = soup.find('span', class_='product-sale-price title-l1 ng-star-inserted').text.strip().split()[0]
+            old_price = soup.find('div', class_='price-old').text.strip().split()[0]
+
         except AttributeError:
-            def_price = "На этот товар есть скидка"
+            old_price = "На товар нет скидки"
 
-        try:
-            sale_price = soup.find('span', class_="product-sale-price title-l1 __accent ng-star-inserted").text.strip().split()[0]
-            old_price = soup.find('span', class_="product-old-price--strike ng-star-inserted").text.strip().split()[0]
-            #print(price_now)
-        except AttributeError:
-            sale_price = 'Скидки нет'
-            old_price = 'Скидки нет'
+        price_now = soup.find('div', class_='price-new').text.strip().split()[0]
 
-
-
-        #difference = float(old_price) - float(price_now)
-
-        with open("report.csv", 'a', encoding='cp1251') as file:
+        with open("report_perek.csv", 'a', encoding='cp1251') as file:
             writer = csv.writer(file, delimiter=',')
 
             writer.writerow(
                 (
                     title,
-                    def_price,
-                    sale_price,
-                    old_price,
+                    price_now,
+                    old_price
                 )
             )
 
