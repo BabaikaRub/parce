@@ -3,6 +3,7 @@ import csv
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 import openpyxl
+import os
 
 book = openpyxl.open('../db.xlsx', read_only=True)
 
@@ -23,7 +24,7 @@ def collect_data():
     ua = UserAgent()
 
     headers = {
-        'User-Agent': ua.random,
+        "User-Agent": ua.random,
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         "Accept-Encoding": "gzip, deflate, br",
         "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
@@ -75,6 +76,7 @@ def collect_data():
             )
 
     print('Файл успешно записан')
+    os.remove('../index_per.html')
 
 
 def main():

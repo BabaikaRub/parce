@@ -2,6 +2,7 @@ import requests
 import csv
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
+import os
 
 from utk.db_utk import articles
 
@@ -28,7 +29,7 @@ def collect_data():
     for article in articles.values():
         # Добавить проверку существования данного арктикля
         response = requests.get(url=f'https://www.utkonos.ru/item/{article}', headers=headers)
-
+        #print('успешно')
         with open(f'../index_utk.html', 'w', encoding="utf-8") as file:
             file.write(response.text)
 
@@ -70,6 +71,7 @@ def collect_data():
             )
 
     print('Файл успешно записан')
+    os.remove('../index_utk.html')
 
 
 def main():
