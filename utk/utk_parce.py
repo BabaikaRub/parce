@@ -3,11 +3,7 @@ import csv
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 
-
-articles = {'Котлеты Морозко из говядины замороженные 330 г': 3396152,
-            'Пельмени Цезарь государь император 800 г': 3358100,
-            'Пельмени Цезарь царское застолье 750 г': 3396163,
-            'Пельмени Цезарь Сибирские 800 г': 3396159}
+from utk.db_utk import articles
 
 
 def collect_data():
@@ -17,7 +13,7 @@ def collect_data():
         'User-Agent': ua.random
     }
 
-    with open("report.csv", 'w', encoding='cp1251') as file:
+    with open("../report_utk.csv", 'w', encoding='cp1251') as file:
         writer = csv.writer(file, delimiter=',')
 
         writer.writerow(
@@ -30,13 +26,13 @@ def collect_data():
         )
 
     for article in articles.values():
-
+        # Добавить проверку существования данного арктикля
         response = requests.get(url=f'https://www.utkonos.ru/item/{article}', headers=headers)
 
-        with open(f'index.html', 'w', encoding="utf-8") as file:
+        with open(f'../index_utk.html', 'w', encoding="utf-8") as file:
             file.write(response.text)
 
-        with open('index.html', encoding='utf-8') as file:
+        with open('../index_utk.html', encoding='utf-8') as file:
             src = file.read()
 
         soup = BeautifulSoup(src, 'lxml')
@@ -61,7 +57,7 @@ def collect_data():
 
         #difference = float(old_price) - float(price_now)
 
-        with open("report.csv", 'a', encoding='cp1251') as file:
+        with open("report_utk.csv", 'a', encoding='cp1251') as file:
             writer = csv.writer(file, delimiter=',')
 
             writer.writerow(
