@@ -14,7 +14,7 @@ def collect_data():
         'User-Agent': ua.random
     }
 
-    with open("../report_utk.csv", 'w', encoding='cp1251') as file:
+    with open("report_utk.csv", 'w', encoding='cp1251') as file:
         writer = csv.writer(file, delimiter=',')
 
         writer.writerow(
