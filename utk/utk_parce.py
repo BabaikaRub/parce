@@ -2,9 +2,27 @@ import requests
 import csv
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
+import openpyxl
+
 import os
 
-from utk.db_utk import articles
+
+def get_info(file_name):
+    book = openpyxl.open(file_name, read_only=True)
+
+    sheet = book.active
+
+    db = []
+
+    for row in range(7, sheet.max_row + 1):
+        link = sheet[row][9].value
+
+        if link is None:
+            continue
+        else:
+            db.append(link)
+
+    return db
 
 
 def collect_data():
@@ -26,9 +44,11 @@ def collect_data():
             )
         )
 
-    for article in articles.values():
+    links = get_info("../db.xlsx")
+
+    for link in links:
         # Добавить проверку существования данного арктикля
-        response = requests.get(url=f'https://www.utkonos.ru/item/{article}', headers=headers)
+        response = requests.get(url=f'{link}', headers=headers)
         #print('успешно')
         with open(f'../index_utk.html', 'w', encoding="utf-8") as file:
             file.write(response.text)
@@ -38,8 +58,11 @@ def collect_data():
 
         soup = BeautifulSoup(src, 'lxml')
 
-        title = soup.find('h1', class_="product-base-info_name title-l2 ng-star-inserted").text.strip()
-        #print(title)
+        try:
+            title = soup.find('h1', class_="product-base-info_name title-l2 ng-star-inserted").text.strip()
+
+        except AttributeError:
+            title = link
 
         try:
             def_price = soup.find('span', class_='product-sale-price title-l1 ng-star-inserted').text.strip().split()[0]
