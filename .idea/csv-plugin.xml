@@ -17,20 +17,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\report_utk.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\utk\report.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\utk\report_utk.csv">
           <value>
             <Attribute>
