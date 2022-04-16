@@ -67,7 +67,10 @@ def collect_data():
         except AttributeError:
             title = link
 
-        price_now = soup.find('span', class_='price_value').text.strip()
+        try:
+            price_now = soup.find('span', class_='price_value').text.strip()
+        except AttributeError:
+            price_now = "Ошибка"
 
         try:
             old_price = soup.find('div', class_='sticker_aktsiya font_sxs rounded2').text.strip()
