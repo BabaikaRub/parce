@@ -2,22 +2,9 @@ import requests
 import csv
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
-import openpyxl
 import os
 
-book = openpyxl.open('../db.xlsx', read_only=True)
-
-sheet = book.active
-
-db = []
-
-for row in range(7, sheet.max_row + 1):
-    link = sheet[row][8].value
-
-    if link is None:
-        continue
-    else:
-        db.append(link)
+from config import get_info
 
 
 def collect_data():
@@ -39,7 +26,9 @@ def collect_data():
             )
         )
 
-    for link in db:
+    links = get_info("../db.xlsx", 8)
+
+    for link in links:
 
         response = requests.get(url=f'{link}', headers=headers)
 
