@@ -1,40 +1,36 @@
-import requests
-import csv
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
-import openpyxl
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
 import os
+import csv
+
+from config import get_info
 
 
-def get_info(file_name):
-    book = openpyxl.open(file_name, read_only=True)
+def create_driver():
+    ua = UserAgent()
 
-    sheet = book.active
+    options = webdriver.ChromeOptions()
+    options.add_argument(f"user-agent={ua.random}")
+    options.add_argument("--headless")
 
-    db = []
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
-    for row in range(7, sheet.max_row + 1):
-        link = sheet[row][11].value
-
-        if link is None:
-            continue
-        else:
-            db.append(link)
-
-    return db
+    return driver
 
 
 def collect_data():
-    ua = UserAgent()
 
-    headers = {
-        'User-Agent': ua.random,
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Cache-Lontrol": "max - age = 0",
-        "Connection": "keep-alive",
-    }
+    # headers = {
+    #     'User-Agent': ua.random,
+    #     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+    #     "Accept-Encoding": "gzip, deflate, br",
+    #     "Cache-Lontrol": "max - age = 0",
+    #     "Connection": "keep-alive",
+    # }
 
     with open("report_dixy.csv", 'w', encoding='cp1251') as file:
         writer = csv.writer(file, delimiter=',')
@@ -47,44 +43,54 @@ def collect_data():
             )
         )
 
-    links = get_info("../db.xlsx")
+    links = get_info("../db.xlsx", 11)
+    chrome_driver = create_driver()
 
     for link in links:
 
-        response = requests.get(url=f'{link}', headers=headers)
-
-        with open(f'../index_dixy.html', 'w', encoding="utf-8") as file:
-            file.write(response.text)
-
-        with open('../index_dixy.html', encoding='utf-8') as file:
-            src = file.read()
-
-        soup = BeautifulSoup(src, 'lxml')
-
         try:
-            title = soup.find('h1', id="pagetitle").text.strip()
+            chrome_driver.get(url=link)
+            chrome_driver.set_page_load_timeout(30)
 
-        except AttributeError:
-            title = link
+            with open(f'index_dixy.html', 'w', encoding="utf-8") as file:
+                file.write(chrome_driver.page_source)
 
-        price_now = soup.find('span', class_='price_value').text.strip()
+            with open('index_dixy.html', encoding='utf-8') as file:
+                src = file.read()
 
-        try:
-            old_price = soup.find('div', class_='sticker_aktsiya font_sxs rounded2').text.strip()
+            soup = BeautifulSoup(src, 'lxml')
 
-        except AttributeError:
-            old_price = 'Скидки нет'
+            try:
+                title = soup.find('h1', id="pagetitle").text.strip()
 
-        with open("report_dixy.csv", 'a', encoding='cp1251') as file:
-            writer = csv.writer(file, delimiter=',')
+            except AttributeError:
+                title = link
 
-            writer.writerow(
-                (
-                    title,
-                    price_now,
-                    old_price,
+            price_now = soup.find('span', class_='price_value').text.strip()
+
+            try:
+                old_price = soup.find('div', class_='sticker_aktsiya font_sxs rounded2').text.strip()
+
+            except AttributeError:
+                old_price = 'Скидки нет'
+
+            with open("report_dixy.csv", 'a', encoding='cp1251') as file:
+                writer = csv.writer(file, delimiter=',')
+
+                writer.writerow(
+                    (
+                        title,
+                        price_now,
+                        old_price,
+                    )
                 )
-            )
+
+        except Exception as ex:
+            print(ex)
+
+        finally:
+            chrome_driver.close()
+            chrome_driver.quit()
 
     print('Файл успешно записан')
     os.remove('../index_dixy.html')
