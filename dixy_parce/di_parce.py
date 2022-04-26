@@ -24,14 +24,6 @@ def create_driver():
 
 def collect_data():
 
-    # headers = {
-    #     'User-Agent': ua.random,
-    #     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-    #     "Accept-Encoding": "gzip, deflate, br",
-    #     "Cache-Lontrol": "max - age = 0",
-    #     "Connection": "keep-alive",
-    # }
-
     with open("report_dixy.csv", 'w', encoding='cp1251') as file:
         writer = csv.writer(file, delimiter=',')
 
@@ -44,13 +36,13 @@ def collect_data():
         )
 
     links = get_info("../db.xlsx", 11)
-    chrome_driver = create_driver()
 
     for link in links:
 
         try:
+            chrome_driver = create_driver()
             chrome_driver.get(url=link)
-            chrome_driver.set_page_load_timeout(30)
+            chrome_driver.set_page_load_timeout(10)
 
             with open(f'index_dixy.html', 'w', encoding="utf-8") as file:
                 file.write(chrome_driver.page_source)
@@ -93,7 +85,7 @@ def collect_data():
             chrome_driver.quit()
 
     print('Файл успешно записан')
-    os.remove('../index_dixy.html')
+    os.remove('index_dixy.html')
 
 
 def main():
