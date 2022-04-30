@@ -2,22 +2,9 @@ import requests
 import csv
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
-import openpyxl
 import os
 
-book = openpyxl.open('../db.xlsx', read_only=True)
-
-sheet = book.active
-
-db = []
-
-for row in range(7, sheet.max_row + 1):
-    link = sheet[row][8].value
-
-    if link is None:
-        continue
-    else:
-        db.append(link)
+from config import get_info
 
 
 def collect_data():
@@ -39,28 +26,34 @@ def collect_data():
             )
         )
 
-    for link in db:
+    links = get_info("../db.xlsx", 8)
+
+    for link in links:
 
         response = requests.get(url=f'{link}', headers=headers)
 
-        with open(f'../index_ozon.html', 'w', encoding="utf-8") as file:
+        with open(f'index_ozon.html', 'w', encoding="utf-8") as file:
             file.write(response.text)
 
-        with open('../index_ozon.html', encoding='utf-8') as file:
+        with open('index_ozon.html', encoding='utf-8') as file:
             src = file.read()
 
         soup = BeautifulSoup(src, 'lxml')
 
-        title = soup.find('h1', class_="k3x").text.strip()
+        try:
+            title = soup.find('h1', class_="z5k").text.strip()
+
+        except AttributeError:
+            title = link
 
         try:
-            disc_price = soup.find('span', class_='kw1').text.strip().split()[0]
+            disc_price = soup.find('span', class_='yk3').text.strip().split()[0]
 
         except AttributeError:
             disc_price = 'На товар есть скидка'
 
         try:
-            old_price = soup.find('span', class_='w1k').text.strip().split()[0]
+            old_price = soup.find('span', class_='k4y').text.strip().split()[0]
 
         except AttributeError:
             old_price = "На товар нет скидки"
@@ -77,7 +70,7 @@ def collect_data():
             )
 
     print('Файл успешно записан')
-    os.remove('../index_ozon.html')
+    os.remove('index_ozon.html')
 
 
 def main():
