@@ -14,7 +14,7 @@ def collect_data():
         'User-Agent': ua.random
     }
 
-    with open("../report_utk.csv", 'w', encoding='cp1251') as file:
+    with open("report_utk.csv", 'w', encoding='cp1251') as file:
         writer = csv.writer(file, delimiter=',')
 
         writer.writerow(
@@ -39,7 +39,7 @@ def collect_data():
         soup = BeautifulSoup(src, 'lxml')
 
         title = soup.find('h1', class_="product-base-info_name title-l2 ng-star-inserted").text.strip()
-        #print(title)
+        print(title)
 
         try:
             def_price = soup.find('span', class_='product-sale-price title-l1 ng-star-inserted').text.strip().split()[0]
