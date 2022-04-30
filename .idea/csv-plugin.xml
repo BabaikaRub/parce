@@ -17,6 +17,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\parce_metro\report_metro.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\per_parce\report_perek.csv">
           <value>
             <Attribute>
