@@ -17,7 +17,7 @@ def create_driver():
     options.add_argument(f"user-agent={ua.random}")
     options.add_argument("--headless")
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
     return driver
 
@@ -53,19 +53,19 @@ def collect_data():
             soup = BeautifulSoup(src, 'lxml')
 
             try:
-                title = soup.find('span', class_="ttu50to t18stym3 hbhlhv b1ba12f6 b1w7hx1f n1xbokzp l1pe8tpi").text.strip()
+                title = soup.find('span', class_="ttu50to t18stym3 hbhlhv b1ba12f6 b1wwsurb n1wpn6v7 l14lhr1r").text.strip()
 
             except AttributeError:
                 title = link
 
             try:
-                price_now = soup.find('span', class_="t15aiivf t18stym3 t38p0ru b1ba12f6 bima6ou tvy59in l1pe8tpi").text.strip().split()[0]
+                price_now = soup.find('span', class_="t15aiivf t18stym3 t38p0ru b1ba12f6 bkuxkry t1wnuyqt l14lhr1r").text.strip().split()[0]
 
             except AttributeError:
-                price_now = soup.find('span', class_="t18stym3 bw441np m493tk9 m17pe0no t9zvddw l1pe8tpi").text.strip().split()[0]
+                price_now = "Товара нет"
 
             try:
-                old_price = soup.find('span', class_='a1dq5c6d').text.strip()
+                old_price = soup.find('span', class_='t18stym3 b1clo64h r88klks r1b0wfc3 tnicrlv l14lhr1r').text.strip().split()[0]
 
             except AttributeError:
                 old_price = 'Скидки нет'
