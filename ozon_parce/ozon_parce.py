@@ -1,19 +1,31 @@
-import requests
-import csv
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support import expected_conditions as ec
+
+import csv
 import os
 
 from config import get_info
 
 
-def collect_data():
+def create_driver():
     ua = UserAgent()
 
-    headers = {
-        "User-Agent": ua.random,
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-    }
+    options = webdriver.ChromeOptions()
+    options.add_argument(f"user-agent={ua.random}")
+    options.add_argument("--headless")
+
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+    return driver
+
+
+def collect_data():
 
     with open("report_ozon.csv", 'w', encoding='cp1251') as file:
         writer = csv.writer(file, delimiter=',')
@@ -30,44 +42,54 @@ def collect_data():
 
     for link in links:
 
-        response = requests.get(url=f'{link}', headers=headers)
-
-        with open(f'index_ozon.html', 'w', encoding="utf-8") as file:
-            file.write(response.text)
-
-        with open('index_ozon.html', encoding='utf-8') as file:
-            src = file.read()
-
-        soup = BeautifulSoup(src, 'lxml')
-
         try:
-            title = soup.find('h1', class_="nl7").text.strip()
+            chrome_driver = create_driver()
+            chrome_driver.get(url=link)
+            element = WebDriverWait(chrome_driver, 10).until(ec.presence_of_element_located((By.TAG_NAME, "html")))
 
-        except AttributeError:
-            title = link
+            with open(f'index_ozon.html', 'w', encoding="utf-8") as file:
+                file.write(chrome_driver.page_source)
 
-        try:
-            disc_price = soup.find('span', class_='l5m ml5').text.strip().split()[0]
+            with open('index_ozon.html', encoding='utf-8') as file:
+                src = file.read()
 
-        except AttributeError:
-            disc_price = 'На товар есть скидка'
+            soup = BeautifulSoup(src, 'lxml')
 
-        try:
-            old_price = soup.find('span', class_='lm6').text.strip().split()[0]
+            try:
+                title = soup.find('h1', class_="wl2").text.strip()
 
-        except AttributeError:
-            old_price = "На товар нет скидки"
+            except AttributeError:
+                title = soup.find('h1', class_="l9x").text.strip()
 
-        with open("report_ozon.csv", 'a', encoding='cp1251') as file:
-            writer = csv.writer(file, delimiter=',')
+            try:
+                disc_price = soup.find('span', class_='l0v vl0').text.strip().split()[0]
 
-            writer.writerow(
-                (
-                    title,
-                    disc_price,
-                    old_price,
+            except AttributeError:
+                disc_price = soup.find('span', class_='lw7').text.strip().split()[0]
+
+            try:
+                old_price = soup.find('span', class_='lv1').text.strip().split()[0]
+
+            except AttributeError:
+                old_price = "На товар нет скидки"
+
+            with open("report_ozon.csv", 'a', encoding='cp1251') as file:
+                writer = csv.writer(file, delimiter=',')
+
+                writer.writerow(
+                    (
+                        title,
+                        disc_price,
+                        old_price,
+                    )
                 )
-            )
+
+        except Exception as ex:
+            print(ex)
+
+        finally:
+            chrome_driver.close()
+            chrome_driver.quit()
 
     print('Файл успешно записан')
     os.remove('index_ozon.html')
