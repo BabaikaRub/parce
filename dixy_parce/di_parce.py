@@ -17,7 +17,7 @@ def create_driver():
     options.add_argument(f"user-agent={ua.random}")
     options.add_argument("--headless")
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
     return driver
 
