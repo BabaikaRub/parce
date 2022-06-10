@@ -56,19 +56,19 @@ def collect_data():
             soup = BeautifulSoup(src, 'lxml')
 
             try:
-                title = soup.find('h1', class_="wl2").text.strip()
+                title = soup.find('h1', class_="z3l").text.strip()
 
             except AttributeError:
-                title = soup.find('h1', class_="l9x").text.strip()
+                title = soup.find('h1', class_="z3l").text.strip()
 
             try:
-                disc_price = soup.find('span', class_='l0v vl0').text.strip().split()[0]
+                disc_price = soup.find('span', class_='yl1 ly2').text.strip().split()[0]
 
             except AttributeError:
-                disc_price = soup.find('span', class_='lw7').text.strip().split()[0]
+                disc_price = soup.find('span', class_='yl1 y1l').text.strip().split()[0]
 
             try:
-                old_price = soup.find('span', class_='lv1').text.strip().split()[0]
+                old_price = soup.find('span', class_='l2y').text.strip().split()[0]
 
             except AttributeError:
                 old_price = "На товар нет скидки"
