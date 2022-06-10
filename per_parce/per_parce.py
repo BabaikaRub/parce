@@ -1,22 +1,28 @@
-import requests
-import csv
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+
 import os
+import csv
 
 from config import get_info
 
 
-def collect_data():
+def create_driver():
     ua = UserAgent()
 
-    headers = {
-        "User-Agent": ua.random,
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Cache-Control": "max - age = 0",
-    }
+    options = webdriver.ChromeOptions()
+    options.add_argument(f"user-agent={ua.random}")
+    options.add_argument("--headless")
+
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+    return driver
+
+
+def collect_data():
 
     with open("report_perek.csv", 'w', encoding='cp1251') as file:
         writer = csv.writer(file, delimiter=',')
@@ -33,44 +39,54 @@ def collect_data():
 
     for link in links:
 
-        response = requests.get(url=f'{link}', headers=headers)
-
-        with open(f'../index_per.html', 'w', encoding="utf-8") as file:
-            file.write(response.text)
-
-        with open('../index_per.html', encoding='utf-8') as file:
-            src = file.read()
-
-        soup = BeautifulSoup(src, 'lxml')
-
         try:
-            title = soup.find('h1', class_="product__title").text.strip()
 
-        except AttributeError:
-            title = link
+            chrome_driver = create_driver()
+            chrome_driver.get(url=link)
 
-        try:
-            old_price = soup.find('div', class_='price-old').text.strip().split()[0]
+            with open(f'../index_per.html', 'w', encoding="utf-8") as file:
+                file.write(chrome_driver.page_source)
 
-        except AttributeError:
-            old_price = "На товар нет скидки"
+            with open('../index_per.html', encoding='utf-8') as file:
+                src = file.read()
 
-        try:
-            price_now = soup.find('div', class_='price-new').text.strip().split()[0]
+            soup = BeautifulSoup(src, 'lxml')
 
-        except AttributeError:
-            price_now = "Перепроверь товар!"
+            try:
+                title = soup.find('h1', class_="product__title").text.strip()
 
-        with open("report_perek.csv", 'a', encoding='cp1251') as file:
-            writer = csv.writer(file, delimiter=',')
+            except AttributeError:
+                title = link
 
-            writer.writerow(
-                (
-                    title,
-                    price_now,
-                    old_price
+            try:
+                old_price = soup.find('div', class_='price-old').text.strip().split()[0]
+
+            except AttributeError:
+                old_price = "На товар нет скидки"
+
+            try:
+                price_now = soup.find('div', class_='price-new').text.strip().split()[0]
+
+            except AttributeError:
+                price_now = "Перепроверь товар!"
+
+            with open("report_perek.csv", 'a', encoding='cp1251') as file:
+                writer = csv.writer(file, delimiter=',')
+
+                writer.writerow(
+                    (
+                        title,
+                        price_now,
+                        old_price
+                    )
                 )
-            )
+
+        except Exception as ex:
+            print(ex)
+
+        finally:
+            chrome_driver.close()
+            chrome_driver.quit()
 
     print('Файл успешно записан')
     os.remove('../index_per.html')
