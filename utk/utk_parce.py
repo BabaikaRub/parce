@@ -4,7 +4,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
-
 import os
 import csv
 import time
@@ -94,7 +93,7 @@ def collect_data():
             chrome_driver.quit()
 
     print('Файл успешно записан')
-    os.remove('../index_utk.html')
+    os.remove('index_utk.html')
 
 
 def main():
